@@ -1,6 +1,5 @@
 class AssignGroupingListener < Redmine::Hook::ViewListener
-  def view_issues_edit_notes_bottom(context)
-
+  def view_issues_form_details_bottom(context)
 	issue = context[:issue]
 	assignable_users = issue.assignable_users
 	group_ids = (assignable_users.map {|user| user.groups.map {|group| group.id}}).flatten.uniq
