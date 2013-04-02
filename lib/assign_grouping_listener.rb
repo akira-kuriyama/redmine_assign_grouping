@@ -1,12 +1,14 @@
 class AssignGroupingListener < Redmine::Hook::ViewListener
   def view_issues_form_details_bottom(context)
 	issue = context[:issue]
-	assignable_users = issue.assignable_users
+	assignable_users_org = issue.assignable_users
+	assignable_groups, assignable_users = assignable_users_org.partition {|x| x.instance_of? Group}
+
 	group_ids = (assignable_users.map {|user| user.groups.map {|group| group.id}}).flatten.uniq
-	assignable_groups = Group.find(group_ids)
+	user_groups = Group.find(group_ids)
 
 	groups = [] 
-	assignable_groups.each do |group| 
+	user_groups.each do |group| 
 		users = []
 		assignable_users.each do |user| 
 			user.groups.each do |ugroup|
@@ -17,6 +19,9 @@ class AssignGroupingListener < Redmine::Hook::ViewListener
 		end
 		groups << {'lastname' => group.lastname, 'users' => users }
 	end
+	unless assignable_groups.empty?
+		groups << {'lastname' => h(l(:label_group_plural)), 'users' => assignable_groups.map{|x|{'name' => x.name, 'id' => x.id } } }
+	end	
 	assignable_users.each do |user| 
 		is_belong = false
 		groups.each do |group| 
@@ -57,4 +62,3 @@ class AssignGroupingListener < Redmine::Hook::ViewListener
       )
   end
 end
-
